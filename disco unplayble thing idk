@@ -1,0 +1,62 @@
+//==disco but is unplayble use this as serverside pls=//
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local Player = game.Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+for _, v in ipairs(Lighting:GetChildren()) do
+	if v:IsA("Sky") then
+		v:Destroy()
+	end
+end
+
+local sky = Instance.new("Sky")
+sky.Name = ""
+put id what ever u want am lazy
+sky.SkyboxBk = "rbxassetid://159454299"
+sky.SkyboxDn = "rbxassetid://159454296"
+sky.SkyboxFt = "rbxassetid://159454293"
+sky.SkyboxLf = "rbxassetid://159454286"
+sky.SkyboxRt = "rbxassetid://159454300"
+sky.SkyboxUp = "rbxassetid://159454288"
+
+sky.Parent = Lighting
+
+
+local color = Instance.new("ColorCorrectionEffect")
+color.Parent = Lighting
+
+local blur = Instance.new("BlurEffect")
+blur.Size = 24
+blur.Parent = Lighting
+
+local bloom = Instance.new("BloomEffect")
+bloom.Intensity = 3
+bloom.Size = 56
+bloom.Parent = Lighting
+
+ 
+RunService.RenderStepped:Connect(function()
+ 
+	color.TintColor = Color3.fromHSV(math.random(), 1, 1)
+	color.Contrast = math.random(-5, 5)
+	color.Brightness = math.random(-3, 3)
+
+ 
+	Lighting.Brightness = math.random(1, 10)
+	Lighting.ClockTime = math.random(0, 24)
+
+ 
+	Camera.CFrame =
+		Camera.CFrame *
+		CFrame.new(
+			math.random(-2,2)/10,
+			math.random(-2,2)/10,
+			0
+		) *
+		CFrame.Angles(
+			0,
+			math.rad(math.random(-10,10)),
+			0
+		)
+end)
