@@ -1,0 +1,45 @@
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LP = Players.LocalPlayer
+
+
+local parentGui = (gethui and gethui()) or game:GetService("CoreGui")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "HiddenTouchFlingGUI"
+gui.ResetOnSpawn = false
+gui.Parent = parentGui
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,230,0,185)
+main.Position = UDim2.new(0.38,0,0.38,0)
+main.BackgroundColor3 = Color3.fromRGB(25,25,25)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,30)
+title.BackgroundColor3 = Color3.fromRGB(40,40,40)
+title.Text = "fe troll gui"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextColor3 = Color3.new(1,1,1)
+
+
+RunService.RenderStepped:Connect(function()
+	troll.Rotation += 1.2
+end)
+
+local nameBox = Instance.new("TextBox", main)
+nameBox.Position = UDim2.new(0.08,0,0.28,0)
+nameBox.Size = UDim2.new(0.84,0,0,32)
+nameBox.PlaceholderText = "Player name display"
+nameBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
+nameBox.TextColor3 = Color3.new(1,1,1)
+nameBox.BorderSizePixel = 0
+nameBox.TextSize = 16
+
+local flingBtn = Ins
