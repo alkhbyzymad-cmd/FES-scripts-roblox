@@ -1,0 +1,77 @@
+ANIT FREEZE 
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+
+local _WALKSPEED = 16
+local _JUMPPOWER = 50
+
+-- Body movers that freeze players
+local BLOCKED_BODYMOVERS = {
+	BodyPosition = true,
+	BodyVelocity = true,
+	BodyGyro = true,
+	AlignPosition = true,
+	AlignOrientation = true
+}
+
+local function protectCharacter(char)
+	local hum = char:WaitForChild("Humanoid")
+	local hrp = char:WaitForChild("HumanoidRootPart")
+
+	-- Hard lock values
+	hum:SetAttribute("AntiFreeze", true)
+
+	-- Constant protection
+	local conn
+	conn = RunService.Heartbeat:Connect(function()
+		if not char.Parent then
+			conn:Disconnect()
+			return
+		end
+
+		if hrp.Anchored then
+			hrp.Anchored = false
+		end
+
+
+		if hum.PlatformStand then
+			hum.PlatformStand = false
+		end
+
+		if hum.Sit then
+			hum.Sit = false
+		end
+
+
+		if hum.WalkSpeed < _WALKSPEED then
+			hum.WalkSpeed = _WALKSPEED
+		end
+
+		if hum.JumpPower < _JUMPPOWER then
+			hum.JumpPower = _JUMPPOWER
+		end
+
+	
+		for _,v in ipairs(hrp:GetChildren()) do
+			if BLOCKED_BODYMOVERS[v.ClassName] then
+				v:Destroy()
+			end
+		end
+	end)
+end
+
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(char)
+		task.wait(0.5)
+		protectCharacter(char)
+	end)
+end)
+
+
+for _,player in ipairs(Players:GetPlayers()) do
+	if player.Character then
+		protectCharacter(player.Character)
+	end
+end
