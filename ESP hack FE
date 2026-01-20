@@ -1,0 +1,85 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local ESP = {}
+
+local function CreateESP(player)
+	if player == LocalPlayer then return end
+
+	local box = Drawing.new("Square")
+	box.Color = Color3.fromRGB(255, 0, 0)
+	box.Thickness = 2
+	box.Filled = false
+	box.Visible = false
+
+	local nameText = Drawing.new("Text")
+	nameText.Size = 13
+	nameText.Color = Color3.fromRGB(255,255,255)
+	nameText.Center = true
+	nameText.Outline = true
+	nameText.Visible = false
+
+	local healthText = Drawing.new("Text")
+	healthText.Size = 12
+	healthText.Color = Color3.fromRGB(0,255,0)
+	healthText.Center = true
+	healthText.Outline = true
+	healthText.Visible = false
+
+	ESP[player] = {box, nameText, healthText}
+end
+
+local function RemoveESP(player)
+	if ESP[player] then
+		for _,v in pairs(ESP[player]) do
+			v:Remove()
+		end
+		ESP[player] = nil
+	end
+end
+
+Players.PlayerAdded:Connect(CreateESP)
+Players.PlayerRemoving:Connect(RemoveESP)
+
+for _,p in ipairs(Players:GetPlayers()) do
+	CreateESP(p)
+end
+
+RunService.RenderStepped:Connect(function()
+	for player, drawings in pairs(ESP) do
+		local char = player.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+		if hrp and hum and hum.Health > 0 then
+			local pos, onscreen = Camera:WorldToViewportPoint(hrp.Position)
+
+			if onscreen then
+				local distance = math.floor((Camera.CFrame.Position - hrp.Position).Magnitude)
+
+				local size = Vector2.new(2000 / pos.Z, 3000 / pos.Z)
+				drawings[1].Size = size
+				drawings[1].Position = Vector2.new(pos.X - size.X/2, pos.Y - size.Y/2)
+				drawings[1].Visible = true
+
+				drawings[2].Text = player.Name .. " [" .. distance .. "m]"
+				drawings[2].Position = Vector2.new(pos.X, pos.Y - size.Y/2 - 14)
+				drawings[2].Visible = true
+
+				drawings[3].Text = "HP: " .. math.floor(hum.Health) .. "/" .. hum.MaxHealth
+				drawings[3].Position = Vector2.new(pos.X, pos.Y + size.Y/2 + 2)
+				drawings[3].Visible = true
+			else
+				for _,v in pairs(drawings) do
+					v.Visible = false
+				end
+			end
+		else
+			for _,v in pairs(drawings) do
+				v.Visible = false
+			end
+		end
+	end
+end)
