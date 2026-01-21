@@ -1,0 +1,136 @@
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LP = Players.LocalPlayer
+
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "bang"
+gui.ResetOnSpawn = false
+gui.Parent = LP:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0,260,0,200)
+frame.Position = UDim2.new(0.35,0,0.35,0)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.Active = true
+frame.Draggable = true
+frame.BorderSizePixel = 0
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,30)
+title.Text = "BANG"
+title.Font = Enum.Font.Sarpanch
+title.TextSize = 26
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundColor3 = Color3.fromRGB(45,45,45)
+
+local box = Instance.new("TextBox", frame)
+box.Size = UDim2.new(0.9,0,0,30)
+box.Position = UDim2.new(0.05,0,0.25,0)
+box.PlaceholderText = "Username / DisplayName"
+box.BackgroundColor3 = Color3.fromRGB(50,50,50)
+box.TextColor3 = Color3.new(1,1,1)
+box.TextSize = 18
+box.BorderSizePixel = 0
+
+local bangBtn = Instance.new("TextButton", frame)
+bangBtn.Size = UDim2.new(0.9,0,0,35)
+bangBtn.Position = UDim2.new(0.05,0,0.48,0)
+bangBtn.Text = "BANG"
+bangBtn.Font = Enum.Font.SourceSansBold
+bangBtn.TextSize = 20
+bangBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
+bangBtn.TextColor3 = Color3.new(1,1,1)
+bangBtn.BorderSizePixel = 0
+
+local stopBtn = Instance.new("TextButton", frame)
+stopBtn.Size = UDim2.new(0.9,0,0,35)
+stopBtn.Position = UDim2.new(0.05,0,0.7,0)
+stopBtn.Text = "STOP"
+stopBtn.Font = Enum.Font.SourceSansBold
+stopBtn.TextSize = 20
+stopBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
+stopBtn.TextColor3 = Color3.new(1,1,1)
+stopBtn.BorderSizePixel = 0
+
+
+
+local BANG_ANIM = "rbxassetid://148840371"
+local active = false
+local tpConn
+local currentTrack
+
+
+local function getTarget(input)
+	if not input or input == "" then return end
+	input = input:lower()
+
+	for _,plr in pairs(Players:GetPlayers()) do
+		if plr ~= LP then
+			if plr.Name:lower():find(input,1,true)
+			or plr.DisplayName:lower():find(input,1,true) then
+				return plr
+			end
+		end
+	end
+end
+
+local function stopBang()
+	active = false
+
+	if tpConn then
+		tpConn:Disconnect()
+		tpConn = nil
+	end
+
+	if currentTrack then
+		currentTrack:Stop()
+		currentTrack = nil
+	end
+end
+
+local function startBang(target)
+	if active then return end
+	active = true
+
+	local char = LP.Character
+	if not char then stopBang() return end
+
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hum or not hrp then stopBang() return end
+	if hum.RigType ~= Enum.HumanoidRigType.R6 then stopBang() return end
+
+	local anim = Instance.new("Animation")
+	anim.AnimationId = BANG_ANIM
+	currentTrack = hum:LoadAnimation(anim)
+	currentTrack:Play()
+	currentTrack:AdjustSpeed(1000)
+
+	tpConn = RunService.Heartbeat:Connect(function()
+		if not active then return end
+		if not target.Character then return end
+
+		local thrp = target.Character:FindFirstChild("HumanoidRootPart")
+		if thrp then
+			local backOffset = -thrp.CFrame.LookVector * 1.2
+			hrp.CFrame = CFrame.new(
+				thrp.Position + backOffset,
+				thrp.Position
+			)
+		end
+	end)
+end
+
+bangBtn.MouseButton1Click:Connect(function()
+	local target = getTarget(box.Text)
+	if target then
+		startBang(target)
+	end
+end)
+
+stopBtn.MouseButton1Click:Connect(function()
+	stopBang()
+end)
