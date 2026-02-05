@@ -1,0 +1,118 @@
+-- ServerScript (place in ServerScriptService)
+-- Upgraded version: Better account age groups with colors + icons for vibe
+-- More detailed categories (Brand New → OG God)
+-- Exact days + approximate join year
+-- Headshot bigger, layout cleaner, red borders sharper
+-- NO real-life age (impossible + privacy protected — Roblox doesn't allow it)
+-- Works 100% in Studio, no HTTP needed
+
+local Players = game:GetService("Players")
+
+local function getAgeGroup(daysOld)
+	if daysOld < 30 then
+		return "Brand New 🔥", Color3.fromRGB(255, 200, 100)
+	elseif daysOld < 365 then
+		return "Newbie 🍼", Color3.fromRGB(100, 255, 100)
+	elseif daysOld < 1095 then -- ~3 years
+		return "Experienced ⚔️", Color3.fromRGB(100, 200, 255)
+	elseif daysOld < 1825 then -- ~5 years
+		return "Veteran 🛡️", Color3.fromRGB(200, 100, 255)
+	elseif daysOld < 3650 then -- ~10 years
+		return "Legend 🌟", Color3.fromRGB(255, 255, 100)
+	else
+		return "OG God 👑", Color3.fromRGB(255, 50, 50)
+	end
+end
+
+local function createNametag(character, plr)
+	local head = character:WaitForChild("Head")
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "PlayerInfoTag"
+	billboard.Adornee = head
+	billboard.Size = UDim2.new(0, 380, 0, 160)
+	billboard.StudsOffset = Vector3.new(0, 4.5, 0)
+	billboard.AlwaysOnTop = false
+	billboard.MaxDistance = 150
+	billboard.Parent = character
+
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Size = UDim2.new(1, 0, 1, 0)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+	mainFrame.BorderSizePixel = 5
+	mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+	mainFrame.Parent = billboard
+
+	-- Bigger headshot
+	local thumbUrl, isFinal = Players:GetUserThumbnailAsync(plr.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+
+	local avatarImage = Instance.new("ImageLabel")
+	avatarImage.Size = UDim2.new(0, 100, 0, 100)
+	avatarImage.Position = UDim2.new(0, 12, 0, 12)
+	avatarImage.BackgroundTransparency = 1
+	avatarImage.Image = thumbUrl
+	avatarImage.Parent = mainFrame
+
+	-- Calculate approx join year
+	local daysOld = plr.AccountAge
+	local approxYears = math.floor(daysOld / 365)
+	local currentYear = tonumber(os.date("%Y"))
+	local approxJoinYear = currentYear - approxYears
+
+	-- Age group + color
+	local ageGroupText, ageGroupColor = getAgeGroup(daysOld)
+
+	-- Labels (cleaner spacing)
+	local currentY = 12
+	local function addLabel(text, color, size)
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, -130, 0, size or 24)
+		label.Position = UDim2.new(0, 122, 0, currentY)
+		label.BackgroundTransparency = 1
+		label.Text = text
+		label.TextColor3 = color or Color3.new(1, 1, 1)
+		label.Font = Enum.Font.GothamBlack
+		label.TextSize = size or 19
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.Parent = mainFrame
+		currentY = currentY + (size or 24) + 6
+	end
+
+	addLabel(plr.DisplayName, Color3.fromRGB(255, 255, 255), 28)
+	addLabel("@" .. plr.Name, Color3.fromRGB(180, 180, 180), 20)
+	addLabel("Account Age: " .. daysOld .. " days", Color3.fromRGB(255, 80, 80))
+	addLabel(ageGroupText, ageGroupColor, 24)
+	addLabel("Joined ~" .. approxJoinYear, Color3.fromRGB(80, 255, 80))
+
+	-- Extra flair: small red line separator
+	local separator = Instance.new("Frame")
+	separator.Size = UDim2.new(1, -20, 0, 3)
+	separator.Position = UDim2.new(0, 10, 0, 110)
+	separator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	separator.BorderSizePixel = 0
+	separator.Parent = mainFrame
+end
+
+-- Player join handling
+Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function(char)
+		task.wait(1)
+		createNametag(char, plr)
+	end)
+
+	if plr.Character then
+		createNametag(plr.Character, plr)
+	end
+end)
+
+-- Existing players
+for _, plr in ipairs(Players:GetPlayers()) do
+	plr.CharacterAdded:Connect(function(char)
+		task.wait(1)
+		createNametag(char, plr)
+	end)
+
+	if plr.Character then
+		createNametag(plr.Character, plr)
+	end
+end
