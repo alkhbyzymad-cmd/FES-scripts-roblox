@@ -1,0 +1,127 @@
+
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local guiName = "MMGui"
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = guiName
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 220, 0, 100)
+MainFrame.Position = UDim2.new(0, 10, 0, 10)
+MainFrame.BackgroundColor3 = Color3.new(0,0,0)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.new(1,1,1)
+MainFrame.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1,0,0,25)
+Title.BackgroundColor3 = Color3.new(0.2,0.2,0.2)
+Title.BorderSizePixel = 0
+Title.Font = Enum.Font.SourceSans
+Title.Text = "MURDER MYSTERY"
+Title.TextColor3 = Color3.new(1,0,0)
+Title.TextSize = 16
+Title.Parent = MainFrame
+
+local RoleLabel = Instance.new("TextLabel")
+RoleLabel.Name = "Role"
+RoleLabel.Size = UDim2.new(1,0,0,25)
+RoleLabel.Position = UDim2.new(0,0,0,25)
+RoleLabel.BackgroundColor3 = Color3.new(0,0,0)
+RoleLabel.BorderSizePixel = 0
+RoleLabel.Font = Enum.Font.SourceSansBold
+RoleLabel.Text = "Loading..."
+RoleLabel.TextColor3 = Color3.new(1,1,1)
+RoleLabel.TextSize = 18
+RoleLabel.Parent = MainFrame
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Name = "Status"
+StatusLabel.Size = UDim2.new(1,0,0,25)
+StatusLabel.Position = UDim2.new(0,0,0,50)
+StatusLabel.BackgroundColor3 = Color3.new(0,0,0)
+StatusLabel.BorderSizePixel = 0
+StatusLabel.Font = Enum.Font.SourceSans
+StatusLabel.Text = "Starting..."
+StatusLabel.TextColor3 = Color3.new(0,1,0)
+StatusLabel.TextSize = 14
+StatusLabel.Parent = MainFrame
+
+local WeaponLabel = Instance.new("TextLabel")
+WeaponLabel.Size = UDim2.new(0,60,0,25)
+WeaponLabel.Position = UDim2.new(1,-65,0,50)
+WeaponLabel.BackgroundColor3 = Color3.new(0.3,0.3,0.3)
+WeaponLabel.BorderSizePixel = 0
+WeaponLabel.Font = Enum.Font.SourceSansBold
+WeaponLabel.Text = "?"
+WeaponLabel.TextColor3 = Color3.new(1,1,1)
+WeaponLabel.TextSize = 16
+WeaponLabel.Parent = MainFrame
+
+local function getRole()
+    if not player.Character then return "Innocent" end
+    
+    -- Check backpack/character for weapons
+    if player.Backpack:FindFirstChild("Knife") or player.Character:FindFirstChild("Knife") or player.Backpack:FindFirstChild("knife") then
+        return "MURDERER"
+    end
+    if player.Backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("gun") then
+        return "SHERIFF"
+    end
+    
+    -- Check common role values
+    local places = {player, player.Character, ReplicatedStorage}
+    for _, place in pairs(places) do
+        if place then
+            local role = place:FindFirstChild("Role") or 
+                        place:FindFirstChild(player.Name) and place[player.Name]:FindFirstChild("Role") or
+                        place:FindFirstChild("PlayerRole")
+            if role and role:IsA("StringValue") then
+                local r = role.Value:lower()
+                if r:find("murder") or r:find("killer") then return "MURDERER" end
+                if r:find("sheriff") or r:find("gun") then return "SHERIFF" end
+            end
+        end
+    end
+    
+    return "INNOCENT"
+end
+
+local lastRole = ""
+local timeLeft = 180
+
+RunService.Heartbeat:Connect(function()
+    if tick() % 1 < 0.05 then
+        local role = getRole()
+        
+        if role ~= lastRole then
+            lastRole = role
+            RoleLabel.Text = "ROLE: " .. role
+            
+            if role == "MURDERER" then
+                RoleLabel.TextColor3 = Color3.new(1,0,0)
+                WeaponLabel.Text = "KNIFE"
+            elseif role == "SHERIFF" then
+                RoleLabel.TextColor3 = Color3.new(0,0.8,1)
+                WeaponLabel.Text = "GUN"
+            else
+                RoleLabel.TextColor3 = Color3.new(0,1,0)
+                WeaponLabel.Text = "NONE"
+            end
+        end
+        
+        timeLeft = timeLeft - 1
+        if timeLeft < 0 then timeLeft = 180 end
+        
+        local mins = math.floor(timeLeft / 60)
+        local secs = timeLeft % 60
+        StatusLabel.Text = string.format("TIME: %d:%02d", mins, secs)
+    end
+end)
